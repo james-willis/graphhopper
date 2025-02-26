@@ -1,12 +1,6 @@
 package com.graphhopper.isochrone.algorithm;
 
-import com.graphhopper.json.Statement;
-import com.graphhopper.routing.ev.BooleanEncodedValue;
-import com.graphhopper.routing.ev.DecimalEncodedValue;
-import com.graphhopper.routing.ev.DecimalEncodedValueImpl;
-import com.graphhopper.routing.ev.SimpleBooleanEncodedValue;
 import com.graphhopper.routing.util.AllEdgesIterator;
-import com.graphhopper.routing.util.EncodingManager;
 import com.graphhopper.routing.util.TraversalMode;
 import com.graphhopper.routing.weighting.TurnCostProvider;
 import com.graphhopper.routing.weighting.Weighting;
@@ -18,7 +12,6 @@ import com.graphhopper.util.CustomModel;
 import com.graphhopper.util.EdgeIterator;
 import com.graphhopper.util.EdgeIteratorState;
 import com.graphhopper.util.GHUtility;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author Peter Karich
  * @author Michael Zilske
  */
-public class ShortestPathTreeTest {
+public class ShortestPathTreeTest extends IsochroneTestBase {
 
     private static class TimeBasedUTurnCost implements TurnCostProvider {
 
@@ -68,30 +61,9 @@ public class ShortestPathTreeTest {
 
     };
 
-    private final BooleanEncodedValue accessEnc = new SimpleBooleanEncodedValue("access", true);
-    private final DecimalEncodedValue speedEnc = new DecimalEncodedValueImpl("speed", 5, 5, false);
-    private final BooleanEncodedValue ferryEnc = new SimpleBooleanEncodedValue("ferry", false);
-    private final EncodingManager encodingManager = EncodingManager.start().add(accessEnc).add(speedEnc).add(ferryEnc).build();
-    private BaseGraph graph;
-
-    private Weighting createWeighting() {
-        return createWeighting(TurnCostProvider.NO_TURN_COST_PROVIDER);
-    }
-
-    private Weighting createWeighting(TurnCostProvider turnCostProvider) {
-        return CustomModelParser.createWeighting(encodingManager, turnCostProvider, createBaseCustomModel());
-    }
-
-    private CustomModel createBaseCustomModel() {
-        CustomModel customModel = new CustomModel();
-        customModel.addToPriority(If("!" + accessEnc.getName(), Statement.Op.MULTIPLY, "0"));
-        customModel.addToSpeed(If("true", Statement.Op.LIMIT, speedEnc.getName()));
-        return customModel;
-    }
-
     @BeforeEach
     public void setUp() {
-        graph = new BaseGraph.Builder(encodingManager).create();
+        super.setUp();
         //         8
         //        /
         // 0-1-2-3
@@ -99,30 +71,30 @@ public class ShortestPathTreeTest {
         // 4-5-- |
         // |/ \--7
         // 6----/
-        GHUtility.setSpeed(10, true, false, accessEnc, speedEnc, ((Graph) graph).edge(0, 1).setDistance(70));
-        GHUtility.setSpeed(20, true, false, accessEnc, speedEnc, ((Graph) graph).edge(0, 4).setDistance(50));
+        GHUtility.setSpeed(10, true, false, accessEnc, speedEnc, graph.edge(0, 1).setDistance(70));
+        GHUtility.setSpeed(20, true, false, accessEnc, speedEnc, graph.edge(0, 4).setDistance(50));
 
-        GHUtility.setSpeed(10, true, true, accessEnc, speedEnc, ((Graph) graph).edge(1, 4).setDistance(70));
-        GHUtility.setSpeed(10, true, true, accessEnc, speedEnc, ((Graph) graph).edge(1, 5).setDistance(70));
-        GHUtility.setSpeed(10, true, true, accessEnc, speedEnc, ((Graph) graph).edge(1, 2).setDistance(200));
+        GHUtility.setSpeed(10, true, true, accessEnc, speedEnc, graph.edge(1, 4).setDistance(70));
+        GHUtility.setSpeed(10, true, true, accessEnc, speedEnc, graph.edge(1, 5).setDistance(70));
+        GHUtility.setSpeed(10, true, true, accessEnc, speedEnc, graph.edge(1, 2).setDistance(200));
 
-        GHUtility.setSpeed(10, true, false, accessEnc, speedEnc, ((Graph) graph).edge(5, 2).setDistance(50));
-        GHUtility.setSpeed(10, true, false, accessEnc, speedEnc, ((Graph) graph).edge(2, 3).setDistance(50));
+        GHUtility.setSpeed(10, true, false, accessEnc, speedEnc, graph.edge(5, 2).setDistance(50));
+        GHUtility.setSpeed(10, true, false, accessEnc, speedEnc, graph.edge(2, 3).setDistance(50));
 
-        GHUtility.setSpeed(20, true, false, accessEnc, speedEnc, ((Graph) graph).edge(5, 3).setDistance(110));
-        GHUtility.setSpeed(10, true, false, accessEnc, speedEnc, ((Graph) graph).edge(3, 7).setDistance(70));
+        GHUtility.setSpeed(20, true, false, accessEnc, speedEnc, graph.edge(5, 3).setDistance(110));
+        GHUtility.setSpeed(10, true, false, accessEnc, speedEnc, graph.edge(3, 7).setDistance(70));
 
-        GHUtility.setSpeed(20, true, false, accessEnc, speedEnc, ((Graph) graph).edge(4, 6).setDistance(50));
-        GHUtility.setSpeed(10, true, false, accessEnc, speedEnc, ((Graph) graph).edge(5, 4).setDistance(70));
+        GHUtility.setSpeed(20, true, false, accessEnc, speedEnc, graph.edge(4, 6).setDistance(50));
+        GHUtility.setSpeed(10, true, false, accessEnc, speedEnc, graph.edge(5, 4).setDistance(70));
 
-        GHUtility.setSpeed(10, true, false, accessEnc, speedEnc, ((Graph) graph).edge(5, 6).setDistance(70));
-        GHUtility.setSpeed(20, true, false, accessEnc, speedEnc, ((Graph) graph).edge(7, 5).setDistance(50));
+        GHUtility.setSpeed(10, true, false, accessEnc, speedEnc, graph.edge(5, 6).setDistance(70));
+        GHUtility.setSpeed(20, true, false, accessEnc, speedEnc, graph.edge(7, 5).setDistance(50));
 
-        GHUtility.setSpeed(20, true, true, accessEnc, speedEnc, ((Graph) graph).edge(6, 7).setDistance(50));
-        GHUtility.setSpeed(20, true, true, accessEnc, speedEnc, ((Graph) graph).edge(3, 8).setDistance(25));
+        GHUtility.setSpeed(20, true, true, accessEnc, speedEnc, graph.edge(6, 7).setDistance(50));
+        GHUtility.setSpeed(20, true, true, accessEnc, speedEnc, graph.edge(3, 8).setDistance(25));
     }
 
-    private int countDirectedEdges(BaseGraph graph) {
+    protected int countDirectedEdges(BaseGraph graph) {
         int result = 0;
         AllEdgesIterator iter = graph.getAllEdges();
         while (iter.next()) {
@@ -132,11 +104,6 @@ public class ShortestPathTreeTest {
                 result++;
         }
         return result;
-    }
-
-    @AfterEach
-    public void tearDown() {
-        graph.close();
     }
 
     @Test

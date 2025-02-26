@@ -18,6 +18,8 @@
 
 package com.graphhopper.isochrone.algorithm;
 
+import org.locationtech.jts.geom.LineSegment;
+import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.triangulate.quadedge.Vertex;
 
 import java.util.Objects;
@@ -81,5 +83,9 @@ public class QuadEdgeAsReadableQuadEdge implements ReadableQuadEdge {
     @Override
     public int hashCode() {
         return Objects.hash(delegate);
+    }
+
+    public LineSegment toLineSegment() {
+        return delegate.toLineSegment();
     }
 }
